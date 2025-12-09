@@ -1,50 +1,82 @@
 package com.dinosauriojuego.logica;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Clase principal que maneja la lógica del juego
+ */
 public class DinosaurioGame {
+    // Elementos del juego
     private Dinosaurio dinosaurio;
     private List<Obstaculo> obstaculos;
+
+    // Configuración de velocidad
     private float velocidadJuego;
-    private float velocidadMaxima;
+    private static final float VELOCIDAD_INICIAL = 200f;
+    private static final float VELOCIDAD_MAXIMA = 600f;
+    private static final float VELOCIDAD_INCREMENTO = 0.5f;
+
+    // Spawn de obstáculos
     private float tiempoSpawnObstaculo;
     private float tiempoSpawnActual;
+    private static final float SPAWN_INICIAL = 1.5f;
+    private static final float SPAWN_MINIMO = 0.8f;
+
+    // Puntuación
     private int puntuacion;
+    private int highScore;
+    private Preferences prefs;
+
+    // Estado del juego
     private boolean gameOver;
+    private boolean modoNoche;
+
+    // Dimensiones de pantalla
     private float alturaPantalla;
     private float anchoPantalla;
-    private float velocidadIncremento;
 
     public DinosaurioGame(float anchoPantalla, float alturaPantalla) {
         this.anchoPantalla = anchoPantalla;
         this.alturaPantalla = alturaPantalla;
         this.dinosaurio = new Dinosaurio(50, 60);
-        this.obstaculos = new ArrayList<>();
-        this.velocidadJuego = 200f;
-        this.velocidadMaxima = 600f;
-        this.tiempoSpawnObstaculo = 1.5f;
+        this.obstaculos = new ArrayList<Obstaculo>();
+        this.velocidadJuego = VELOCIDAD_INICIAL;
+        this.tiempoSpawnObstaculo = SPAWN_INICIAL;
         this.tiempoSpawnActual = 0f;
         this.puntuacion = 0;
         this.gameOver = false;
-        this.velocidadIncremento = 0.5f;
+        this.modoNoche = false;
+
+        // Cargar high score
+        prefs = Gdx.app.getPreferences("DinosaurioChrome");
+        highScore = prefs.getInteger("highScore", 0);
     }
 
-    public void update(float deltaTime, boolean saltando) {
-        if (gameOver) return;
+    /**
+     * Actualiza el estado del juego
+     */
+    public void update(float deltaTime, boolean saltando, boolean agachando) {
+        if (gameOver) {
+            return;
+        }
 
         // Actualizar dinosaurio
         dinosaurio.update(deltaTime, alturaPantalla);
-        if (saltando && !dinosaurio.estaSaltando()) {
+
+        if (saltando && !dinosaurio.estaSaltando() && !dinosaurio.estaAgachado()) {
             dinosaurio.saltar();
         }
 
+        dinosaurio.agacharse(agachando);
+
         // Incrementar velocidad gradualmente
-        velocidadJuego += velocidadIncremento * deltaTime;
-        if (velocidadJuego > velocidadMaxima) {
-            velocidadJuego = velocidadMaxima;
+        velocidadJuego += VELOCIDAD_INCREMENTO * deltaTime;
+        if (velocidadJuego > VELOCIDAD_MAXIMA) {
+            velocidadJuego = VELOCIDAD_MAXIMA;
         }
 
         // Actualizar obstáculos
@@ -55,6 +87,11 @@ public class DinosaurioGame {
             // Detectar colisión
             if (dinosaurio.colisiona(obs)) {
                 gameOver = true;
+                if (puntuacion > highScore) {
+                    highScore = puntuacion;
+                    prefs.putInteger("highScore", highScore);
+                    prefs.flush();
+                }
             }
 
             // Eliminar obstáculos fuera de pantalla
@@ -70,33 +107,48 @@ public class DinosaurioGame {
             spawnObstaculo();
             tiempoSpawnActual = 0;
             // Reducir tiempo de spawn progresivamente
-            if (tiempoSpawnObstaculo > 0.8f) {
+            if (tiempoSpawnObstaculo > SPAWN_MINIMO) {
                 tiempoSpawnObstaculo -= 0.05f;
             }
         }
 
+        // Incrementar puntuación por tiempo
         puntuacion += (int)(velocidadJuego * deltaTime * 0.1f);
+
+        // Cambiar a modo noche cada 700 puntos
+        modoNoche = (puntuacion / 700) % 2 == 1;
     }
 
+    /**
+     * Genera un nuevo obstáculo aleatorio
+     */
     private void spawnObstaculo() {
         float tipoRandom = MathUtils.random(1f);
         if (tipoRandom < 0.7f) {
-            obstaculos.add(new Obstaculo(anchoPantalla, 30, 50, Obstaculo.TIPO_CACTUS));
+            // Cactus con altura variable
+            float alturaObstaculo = MathUtils.random(30f, 50f);
+            obstaculos.add(new Obstaculo(anchoPantalla, alturaObstaculo, 30, Obstaculo.TIPO_CACTUS));
         } else {
+            // Pterodáctilo
             obstaculos.add(new Obstaculo(anchoPantalla, 25, 50, Obstaculo.TIPO_PAJARO));
         }
     }
 
+    /**
+     * Reinicia el juego a su estado inicial
+     */
     public void reset() {
         dinosaurio.reset();
         obstaculos.clear();
-        velocidadJuego = 200f;
-        tiempoSpawnObstaculo = 1.5f;
+        velocidadJuego = VELOCIDAD_INICIAL;
+        tiempoSpawnObstaculo = SPAWN_INICIAL;
         tiempoSpawnActual = 0f;
         puntuacion = 0;
         gameOver = false;
+        modoNoche = false;
     }
 
+    // Getters
     public Dinosaurio getDinosaurio() {
         return dinosaurio;
     }
@@ -109,6 +161,10 @@ public class DinosaurioGame {
         return puntuacion;
     }
 
+    public int getHighScore() {
+        return highScore;
+    }
+
     public boolean isGameOver() {
         return gameOver;
     }
@@ -119,5 +175,9 @@ public class DinosaurioGame {
 
     public float getVelocidadJuego() {
         return velocidadJuego;
+    }
+
+    public boolean isModoNoche() {
+        return modoNoche;
     }
 }

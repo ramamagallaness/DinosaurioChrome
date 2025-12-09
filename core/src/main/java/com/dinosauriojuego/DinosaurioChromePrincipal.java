@@ -5,6 +5,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.dinosauriojuego.pantallas.DinosaurioGameScreen;
 
+/**
+ * Clase principal de la aplicación
+ */
 public class DinosaurioChromePrincipal extends ApplicationAdapter {
     private DinosaurioGameScreen gameScreen;
     private Skin skin;
