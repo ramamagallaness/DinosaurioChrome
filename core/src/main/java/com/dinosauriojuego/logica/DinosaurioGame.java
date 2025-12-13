@@ -30,6 +30,7 @@ public class DinosaurioGame {
     private int puntuacion;
     private int highScore;
     private Preferences prefs;
+    private String playerKey; // Clave única para cada jugador
 
     // Estado del juego
     private boolean gameOver;
@@ -39,7 +40,12 @@ public class DinosaurioGame {
     private float alturaPantalla;
     private float anchoPantalla;
 
+    // Identificador único para cada instancia
+    private static int instanceCounter = 0;
+    private int instanceId;
+
     public DinosaurioGame(float anchoPantalla, float alturaPantalla) {
+        this.instanceId = instanceCounter++;
         this.anchoPantalla = anchoPantalla;
         this.alturaPantalla = alturaPantalla;
         this.dinosaurio = new Dinosaurio(50, 60);
@@ -51,9 +57,10 @@ public class DinosaurioGame {
         this.gameOver = false;
         this.modoNoche = false;
 
-        // Cargar high score
+        // Cargar high score específico para cada jugador
         prefs = Gdx.app.getPreferences("DinosaurioChrome");
-        highScore = prefs.getInteger("highScore", 0);
+        playerKey = "highScore_player" + instanceId;
+        highScore = prefs.getInteger(playerKey, 0);
     }
 
     /**
@@ -89,7 +96,7 @@ public class DinosaurioGame {
                 gameOver = true;
                 if (puntuacion > highScore) {
                     highScore = puntuacion;
-                    prefs.putInteger("highScore", highScore);
+                    prefs.putInteger(playerKey, highScore);
                     prefs.flush();
                 }
             }
