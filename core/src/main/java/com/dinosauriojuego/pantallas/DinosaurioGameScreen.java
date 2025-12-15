@@ -43,10 +43,8 @@ public class DinosaurioGameScreen implements Screen {
 
     // Labels para cada jugador (dentro del piso)
     private Label puntuacionJ1Label;
-    private Label highScoreJ1Label;
     private Label jugador1Label;
     private Label puntuacionJ2Label;
-    private Label highScoreJ2Label;
     private Label jugador2Label;
 
     // Labels globales
@@ -110,61 +108,49 @@ public class DinosaurioGameScreen implements Screen {
     private void setupUI() {
         // === Labels para Jugador 1 (dentro del piso) ===
         jugador1Label = new Label("JUGADOR 1", skin, "default");
-        jugador1Label.setFontScale(2.0f);
+        jugador1Label.setFontScale(2.5f);
         jugador1Label.setColor(Color.BLACK);
         jugador1Label.setPosition(20, 20);
         stageJugador1.addActor(jugador1Label);
 
-        highScoreJ1Label = new Label("HI: 0", skin, "default");
-        highScoreJ1Label.setFontScale(2.0f);
-        highScoreJ1Label.setColor(Color.BLACK);
-        highScoreJ1Label.setPosition(250, 20);
-        stageJugador1.addActor(highScoreJ1Label);
-
         puntuacionJ1Label = new Label("Puntos: 0", skin, "default");
-        puntuacionJ1Label.setFontScale(2.0f);
+        puntuacionJ1Label.setFontScale(2.5f);
         puntuacionJ1Label.setColor(Color.BLACK);
-        puntuacionJ1Label.setPosition(500, 20);
+        puntuacionJ1Label.setPosition(350, 20);
         stageJugador1.addActor(puntuacionJ1Label);
 
         // === Labels para Jugador 2 (dentro del piso) ===
         jugador2Label = new Label("JUGADOR 2", skin, "default");
-        jugador2Label.setFontScale(2.0f);
+        jugador2Label.setFontScale(2.5f);
         jugador2Label.setColor(Color.BLACK);
         jugador2Label.setPosition(20, 20);
         stageJugador2.addActor(jugador2Label);
 
-        highScoreJ2Label = new Label("HI: 0", skin, "default");
-        highScoreJ2Label.setFontScale(2.0f);
-        highScoreJ2Label.setColor(Color.BLACK);
-        highScoreJ2Label.setPosition(250, 20);
-        stageJugador2.addActor(highScoreJ2Label);
-
         puntuacionJ2Label = new Label("Puntos: 0", skin, "default");
-        puntuacionJ2Label.setFontScale(2.0f);
+        puntuacionJ2Label.setFontScale(2.5f);
         puntuacionJ2Label.setColor(Color.BLACK);
-        puntuacionJ2Label.setPosition(500, 20);
+        puntuacionJ2Label.setPosition(350, 20);
         stageJugador2.addActor(puntuacionJ2Label);
 
         // === Labels globales ===
         // Instrucciones
         instruccionesLabel = new Label("JUGADOR 1: W/ESPACIO saltar | S agacharse\nJUGADOR 2: FLECHA ARRIBA saltar | FLECHA ABAJO agacharse", skin, "default");
-        instruccionesLabel.setFontScale(1.8f);
+        instruccionesLabel.setFontScale(2.0f);
         instruccionesLabel.setColor(Color.BLACK);
-        instruccionesLabel.setPosition(100, 380);
+        instruccionesLabel.setPosition(80, 380);
         instruccionesLabel.setVisible(true);
         stageGlobal.addActor(instruccionesLabel);
 
         // Mensaje de ganador
         ganadorLabel = new Label("", skin, "default");
-        ganadorLabel.setFontScale(4.0f);
+        ganadorLabel.setFontScale(5.0f);
         ganadorLabel.setColor(Color.WHITE);
         ganadorLabel.setVisible(false);
         stageGlobal.addActor(ganadorLabel);
 
         // Instrucciones para reiniciar
         reiniciarLabel = new Label("Presiona ESPACIO para jugar de nuevo", skin, "default");
-        reiniciarLabel.setFontScale(2.5f);
+        reiniciarLabel.setFontScale(2.8f);
         reiniciarLabel.setColor(Color.WHITE);
         reiniciarLabel.setVisible(false);
         stageGlobal.addActor(reiniciarLabel);
@@ -217,28 +203,28 @@ public class DinosaurioGameScreen implements Screen {
         // Renderizar Jugador 2 (mitad inferior)
         renderGame(gameJugador2, viewportJugador2, cameraJugador2, stageJugador2, 0, 0, Color.ORANGE);
 
-        // Línea divisoria
+        // Actualizar puntuaciones
+        puntuacionJ1Label.setText("Puntos: " + gameJugador1.getPuntuacion());
+        puntuacionJ1Label.setColor(Color.BLACK);
+
+        puntuacionJ2Label.setText("Puntos: " + gameJugador2.getPuntuacion());
+        puntuacionJ2Label.setColor(Color.BLACK);
+
+        // Renderizar UI global (instrucciones)
+        if (!juegoTerminado) {
+            stageGlobal.act(delta);
+            stageGlobal.draw();
+        }
+
+        // Línea divisoria (dibujar después de todo)
+        Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        shapeRenderer.setProjectionMatrix(stageGlobal.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.rect(0, 358, GAME_WIDTH, 4);
         shapeRenderer.end();
 
-        // Actualizar puntuaciones
-        puntuacionJ1Label.setText("Puntos: " + gameJugador1.getPuntuacion());
-        puntuacionJ1Label.setColor(Color.BLACK);
-        highScoreJ1Label.setText("HI: " + gameJugador1.getHighScore());
-        highScoreJ1Label.setColor(Color.BLACK);
-
-        puntuacionJ2Label.setText("Puntos: " + gameJugador2.getPuntuacion());
-        puntuacionJ2Label.setColor(Color.BLACK);
-        highScoreJ2Label.setText("HI: " + gameJugador2.getHighScore());
-        highScoreJ2Label.setColor(Color.BLACK);
-
-        // Renderizar UI global
-        stageGlobal.act(delta);
-        stageGlobal.draw();
-
-        // Mostrar pantalla de ganador si el juego terminó
+        // Mostrar pantalla de ganador si el juego terminó (ÚLTIMO para que cubra todo)
         if (juegoTerminado) {
             mostrarPantallaGanador();
         }
@@ -280,15 +266,15 @@ public class DinosaurioGameScreen implements Screen {
         ganadorLabel.setColor(Color.WHITE);
         ganadorLabel.setVisible(true);
         ganadorLabel.setPosition(
-                (GAME_WIDTH - ganadorLabel.getWidth() * 4.0f) / 2,
-                450
+            (GAME_WIDTH - ganadorLabel.getWidth() * 5.0f) / 2,
+            450
         );
 
         reiniciarLabel.setColor(Color.WHITE);
         reiniciarLabel.setVisible(true);
         reiniciarLabel.setPosition(
-                (GAME_WIDTH - reiniciarLabel.getWidth() * 2.5f) / 2,
-                320
+            (GAME_WIDTH - reiniciarLabel.getWidth() * 2.8f) / 2,
+            320
         );
 
         // Dibujar los labels de ganador con el stage global
@@ -317,10 +303,6 @@ public class DinosaurioGameScreen implements Screen {
      */
     private void renderGame(DinosaurioGame game, Viewport viewport, OrthographicCamera camera,
                             Stage stage, int offsetX, int offsetY, Color playerColor) {
-        // Configurar viewport
-        viewport.apply();
-        viewport.setScreenBounds(offsetX, offsetY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 2);
-
         // Colores según modo día/noche
         Color colorFondo;
         Color colorSuelo;
@@ -336,11 +318,16 @@ public class DinosaurioGameScreen implements Screen {
             colorTexto = Color.BLACK;
         }
 
-        // Fondo del viewport
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(colorFondo);
-        shapeRenderer.rect(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 2);
-        shapeRenderer.end();
+        // Configurar viewport DESPUÉS de determinar colores
+        viewport.apply();
+        viewport.setScreenBounds(offsetX, offsetY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 2);
+
+        // Dibujar fondo con coordenadas del viewport físico
+        Gdx.gl.glEnable(GL20.GL_SCISSOR_TEST);
+        Gdx.gl.glScissor(offsetX, offsetY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 2);
+        Gdx.gl.glClearColor(colorFondo.r, colorFondo.g, colorFondo.b, colorFondo.a);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        Gdx.gl.glDisable(GL20.GL_SCISSOR_TEST);
 
         // Renderizar juego
         camera.update();
@@ -364,7 +351,7 @@ public class DinosaurioGameScreen implements Screen {
         if (dino.estaAgachado()) {
             shapeRenderer.setColor(1, 1, 0, 0.5f);
             shapeRenderer.rect(dino.getX() - 2, dino.getY() - 2,
-                    dino.getAncho() + 4, dino.getAlto() + 4);
+                dino.getAncho() + 4, dino.getAlto() + 4);
         }
 
         // Dibujar obstáculos
@@ -391,7 +378,7 @@ public class DinosaurioGameScreen implements Screen {
     private void handleInput() {
         // Jugador 1 - WASD
         if (Gdx.input.isKeyJustPressed(Input.Keys.W) ||
-                Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
             saltoJ1Pendiente = true;
         }
         agachadoJ1Pendiente = Gdx.input.isKeyPressed(Input.Keys.S);
