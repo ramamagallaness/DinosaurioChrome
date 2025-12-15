@@ -6,6 +6,8 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -34,6 +36,13 @@ public class DinosaurioGameScreen implements Screen {
     private Viewport viewportJugador1;
     private Viewport viewportJugador2;
     private ShapeRenderer shapeRenderer;
+    private SpriteBatch batch;
+
+    // Texturas/Sprites
+    private Texture dinoCyan;
+    private Texture dinoOrange;
+    private Texture cactusTexture;
+    private Texture pajaroTexture;
 
     // UI
     private Stage stageJugador1;
@@ -84,6 +93,7 @@ public class DinosaurioGameScreen implements Screen {
         this.viewportJugador2 = new FitViewport(GAME_WIDTH, GAME_HEIGHT, cameraJugador2);
 
         this.shapeRenderer = new ShapeRenderer();
+        this.batch = new SpriteBatch();
 
         // Stages separados
         this.stageJugador1 = new Stage(viewportJugador1);
@@ -98,8 +108,24 @@ public class DinosaurioGameScreen implements Screen {
         this.tiempoInstrucciones = 0;
         this.juegoTerminado = false;
 
+        cargarTexturas();
         setupUI();
         Gdx.input.setInputProcessor(stageGlobal);
+    }
+
+    /**
+     * Carga las texturas del juego
+     */
+    private void cargarTexturas() {
+        try {
+            // Intenta cargar las texturas - ajusta los nombres según tus archivos
+            dinoCyan = new Texture(Gdx.files.internal("dino.png"));
+            dinoOrange = new Texture(Gdx.files.internal("dino.png"));
+            cactusTexture = new Texture(Gdx.files.internal("cactus.png"));
+            pajaroTexture = new Texture(Gdx.files.internal("pajaro.png"));
+        } catch (Exception e) {
+            System.out.println("No se pudieron cargar algunas texturas, se usarán colores sólidos");
+        }
     }
 
     /**
@@ -198,10 +224,10 @@ public class DinosaurioGameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         // Renderizar Jugador 1 (mitad superior)
-        renderGame(gameJugador1, viewportJugador1, cameraJugador1, stageJugador1, 0, 360, Color.CYAN);
+        renderGame(gameJugador1, viewportJugador1, cameraJugador1, stageJugador1, 0, 360, Color.CYAN, dinoCyan);
 
         // Renderizar Jugador 2 (mitad inferior)
-        renderGame(gameJugador2, viewportJugador2, cameraJugador2, stageJugador2, 0, 0, Color.ORANGE);
+        renderGame(gameJugador2, viewportJugador2, cameraJugador2, stageJugador2, 0, 0, Color.ORANGE, dinoOrange);
 
         // Actualizar puntuaciones
         puntuacionJ1Label.setText("Puntos: " + gameJugador1.getPuntuacion());
@@ -224,7 +250,7 @@ public class DinosaurioGameScreen implements Screen {
         shapeRenderer.rect(0, 358, GAME_WIDTH, 4);
         shapeRenderer.end();
 
-        // Mostrar pantalla de ganador si el juego terminó (ÚLTIMO para que cubra todo)
+        // Mostrar pantalla de ganador si el juego terminó
         if (juegoTerminado) {
             mostrarPantallaGanador();
         }
@@ -302,7 +328,7 @@ public class DinosaurioGameScreen implements Screen {
      * Renderiza un juego individual en su viewport
      */
     private void renderGame(DinosaurioGame game, Viewport viewport, OrthographicCamera camera,
-                            Stage stage, int offsetX, int offsetY, Color playerColor) {
+                            Stage stage, int offsetX, int offsetY, Color playerColor, Texture dinoTexture) {
         // Colores según modo día/noche
         Color colorFondo;
         Color colorSuelo;
@@ -318,11 +344,11 @@ public class DinosaurioGameScreen implements Screen {
             colorTexto = Color.BLACK;
         }
 
-        // Configurar viewport DESPUÉS de determinar colores
+        // Configurar viewport
         viewport.apply();
         viewport.setScreenBounds(offsetX, offsetY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 2);
 
-        // Dibujar fondo con coordenadas del viewport físico
+        // Dibujar fondo con scissor test
         Gdx.gl.glEnable(GL20.GL_SCISSOR_TEST);
         Gdx.gl.glScissor(offsetX, offsetY, Gdx.graphics.getWidth(), Gdx.graphics.getHeight() / 2);
         Gdx.gl.glClearColor(colorFondo.r, colorFondo.g, colorFondo.b, colorFondo.a);
@@ -342,30 +368,53 @@ public class DinosaurioGameScreen implements Screen {
         shapeRenderer.setColor(colorTexto);
         shapeRenderer.rectLine(0, 60, GAME_WIDTH, 60, 2);
 
-        // Dibujar dinosaurio con color del jugador
-        shapeRenderer.setColor(playerColor);
-        Dinosaurio dino = game.getDinosaurio();
-        shapeRenderer.rect(dino.getX(), dino.getY(), dino.getAncho(), dino.getAlto());
+        shapeRenderer.end();
 
-        // Indicador visual de agachado
-        if (dino.estaAgachado()) {
-            shapeRenderer.setColor(1, 1, 0, 0.5f);
-            shapeRenderer.rect(dino.getX() - 2, dino.getY() - 2,
-                dino.getAncho() + 4, dino.getAlto() + 4);
+        // Dibujar sprites con batch
+        batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+
+        Dinosaurio dino = game.getDinosaurio();
+
+        // Dibujar dinosaurio con textura o color
+        if (dinoTexture != null) {
+            batch.setColor(playerColor);
+            batch.draw(dinoTexture, dino.getX(), dino.getY(), dino.getAncho(), dino.getAlto());
+            batch.setColor(Color.WHITE);
+        } else {
+            // Fallback: usar ShapeRenderer si no hay textura
+            batch.end();
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(playerColor);
+            shapeRenderer.rect(dino.getX(), dino.getY(), dino.getAncho(), dino.getAlto());
+            shapeRenderer.end();
+            batch.begin();
         }
 
         // Dibujar obstáculos
         for (int i = 0; i < game.getObstaculos().size(); i++) {
             Obstaculo obs = game.getObstaculos().get(i);
-            if (obs.getTipo() == Obstaculo.TIPO_CACTUS) {
-                shapeRenderer.setColor(0.8f, 0.2f, 0.2f, 1);
+
+            if (obs.getTipo() == Obstaculo.TIPO_CACTUS && cactusTexture != null) {
+                batch.draw(cactusTexture, obs.getX(), obs.getY(), obs.getAncho(), obs.getAlto());
+            } else if (obs.getTipo() == Obstaculo.TIPO_PAJARO && pajaroTexture != null) {
+                batch.draw(pajaroTexture, obs.getX(), obs.getY(), obs.getAncho(), obs.getAlto());
             } else {
-                shapeRenderer.setColor(0.3f, 0.3f, 0.8f, 1);
+                // Fallback: dibujar con colores
+                batch.end();
+                shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+                if (obs.getTipo() == Obstaculo.TIPO_CACTUS) {
+                    shapeRenderer.setColor(0.8f, 0.2f, 0.2f, 1);
+                } else {
+                    shapeRenderer.setColor(0.3f, 0.3f, 0.8f, 1);
+                }
+                shapeRenderer.rect(obs.getX(), obs.getY(), obs.getAncho(), obs.getAlto());
+                shapeRenderer.end();
+                batch.begin();
             }
-            shapeRenderer.rect(obs.getX(), obs.getY(), obs.getAncho(), obs.getAlto());
         }
 
-        shapeRenderer.end();
+        batch.end();
 
         // Dibujar UI del jugador (dentro del piso)
         stage.act(Gdx.graphics.getDeltaTime());
@@ -413,8 +462,15 @@ public class DinosaurioGameScreen implements Screen {
     @Override
     public void dispose() {
         shapeRenderer.dispose();
+        batch.dispose();
         stageJugador1.dispose();
         stageJugador2.dispose();
         stageGlobal.dispose();
+
+        // Liberar texturas
+        if (dinoCyan != null) dinoCyan.dispose();
+        if (dinoOrange != null) dinoOrange.dispose();
+        if (cactusTexture != null) cactusTexture.dispose();
+        if (pajaroTexture != null) pajaroTexture.dispose();
     }
 }
