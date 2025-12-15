@@ -17,8 +17,14 @@ public class Obstaculo {
     private float alto;
     private int tipo;
 
-    // Colisión
+    // Colisión - Hitbox ajustada
     private Rectangle bounds;
+
+    // Reducción de hitbox según el tipo
+    private static final float HITBOX_CACTUS_X = 0.20f; // Cactus: reduce 20% en cada lado
+    private static final float HITBOX_CACTUS_Y = 0.10f; // Cactus: reduce 10% arriba/abajo
+    private static final float HITBOX_PAJARO_X = 0.25f; // Pájaro: reduce 25% en cada lado
+    private static final float HITBOX_PAJARO_Y = 0.20f; // Pájaro: reduce 20% arriba/abajo
 
     public Obstaculo(float x, float alto, float ancho, int tipo) {
         this.x = x;
@@ -28,7 +34,6 @@ public class Obstaculo {
 
         // Los pájaros vuelan más alto y a diferentes alturas
         if (tipo == TIPO_PAJARO) {
-            // Altura aleatoria para pájaros: puede volar bajo, medio o alto
             float[] alturasVuelo = {80f, 110f, 140f};
             int indiceAleatorio = (int)(Math.random() * alturasVuelo.length);
             this.y = alturasVuelo[indiceAleatorio];
@@ -37,7 +42,31 @@ public class Obstaculo {
             this.y = 60;
         }
 
-        this.bounds = new Rectangle(x, y, ancho, alto);
+        this.bounds = new Rectangle();
+        actualizarHitbox();
+    }
+
+    /**
+     * Actualiza la hitbox según el tipo de obstáculo
+     */
+    private void actualizarHitbox() {
+        float reduccionX, reduccionY;
+
+        if (tipo == TIPO_CACTUS) {
+            // Hitbox más ajustada para cactus
+            reduccionX = ancho * HITBOX_CACTUS_X;
+            reduccionY = alto * HITBOX_CACTUS_Y;
+        } else {
+            // Hitbox más ajustada para pájaro
+            reduccionX = ancho * HITBOX_PAJARO_X;
+            reduccionY = alto * HITBOX_PAJARO_Y;
+        }
+
+        // Aplicar hitbox reducida centrada en el sprite
+        bounds.x = x + reduccionX;
+        bounds.y = y + reduccionY;
+        bounds.width = ancho - (reduccionX * 2);
+        bounds.height = alto - (reduccionY * 2);
     }
 
     /**
@@ -45,7 +74,7 @@ public class Obstaculo {
      */
     public void update(float deltaTime, float velocidad) {
         x -= velocidad * deltaTime;
-        bounds.x = x;
+        actualizarHitbox();
     }
 
     // Getters

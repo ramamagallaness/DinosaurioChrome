@@ -26,8 +26,10 @@ public class Dinosaurio {
     private float alturaOriginal;
     private float alturaAgachado;
 
-    // Colisión
+    // Colisión - Hitbox ajustada al sprite real
     private Rectangle bounds;
+    private static final float HITBOX_REDUCCION_X = 0.25f; // Reduce 25% en cada lado (50% total)
+    private static final float HITBOX_REDUCCION_Y = 0.15f; // Reduce 15% arriba/abajo
 
     public Dinosaurio(float ancho, float alto) {
         this.ancho = ancho;
@@ -35,16 +37,31 @@ public class Dinosaurio {
         this.alturaAgachado = alto * 0.5f;
         this.alto = alturaOriginal;
         this.x = 50;
-        this.alturaSuelo = 60; // Altura fija del suelo
-        this.y = alturaSuelo; // El dino empieza justo en el suelo
+        this.alturaSuelo = 60;
+        this.y = alturaSuelo;
         this.velocidadY = 0;
         this.saltando = false;
         this.agachado = false;
-        this.bounds = new Rectangle(x, y, ancho, alto);
+        this.bounds = new Rectangle();
+        actualizarHitbox();
+    }
+
+    /**
+     * Actualiza la hitbox para que se ajuste al sprite visible
+     */
+    private void actualizarHitbox() {
+        // Calcular reducción en píxeles
+        float reduccionX = ancho * HITBOX_REDUCCION_X;
+        float reduccionY = alto * HITBOX_REDUCCION_Y;
+
+        // Aplicar hitbox reducida centrada en el sprite
+        bounds.x = x + reduccionX;
+        bounds.y = y + reduccionY;
+        bounds.width = ancho - (reduccionX * 2);
+        bounds.height = alto - (reduccionY * 2);
     }
 
     public void update(float deltaTime, float alturaPantalla) {
-        // El suelo está a 60 píxeles del fondo
         this.alturaSuelo = 60;
 
         // Aplicar gravedad
@@ -58,11 +75,8 @@ public class Dinosaurio {
             saltando = false;
         }
 
-        // Actualizar bounds
-        bounds.x = x;
-        bounds.y = y;
-        bounds.width = ancho;
-        bounds.height = alto;
+        // Actualizar hitbox
+        actualizarHitbox();
     }
 
     public void saltar() {
@@ -80,6 +94,7 @@ public class Dinosaurio {
             } else {
                 alto = alturaOriginal;
             }
+            actualizarHitbox();
         }
     }
 
@@ -93,6 +108,7 @@ public class Dinosaurio {
         saltando = false;
         agachado = false;
         alto = alturaOriginal;
+        actualizarHitbox();
     }
 
     // Getters
