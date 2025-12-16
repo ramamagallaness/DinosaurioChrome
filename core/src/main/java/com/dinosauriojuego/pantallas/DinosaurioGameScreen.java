@@ -36,10 +36,12 @@ public class DinosaurioGameScreen implements Screen {
     private SpriteBatch batch;
 
     // Texturas - Dinosaurios con animación
-    private Texture dinoCyan1;  // Pata izquierda
-    private Texture dinoCyan2;  // Pata derecha
-    private Texture dinoOrange1; // Pata izquierda
-    private Texture dinoOrange2; // Pata derecha
+    private Texture dinoCyan1;
+    private Texture dinoCyan2;
+    private Texture dinoOrange1;
+    private Texture dinoOrange2;
+    private Texture dinoAgachado1;
+    private Texture dinoAgachado2;
 
     // Texturas - Obstáculos
     private Texture cactusTexture;
@@ -106,15 +108,12 @@ public class DinosaurioGameScreen implements Screen {
 
     private void cargarTexturas() {
         try {
-            // Dinosaurios Cyan (Jugador 1)
             dinoCyan1 = new Texture(Gdx.files.internal("dino1.png"));
             dinoCyan2 = new Texture(Gdx.files.internal("dino2.png"));
-
-            // Dinosaurios Orange (Jugador 2)
             dinoOrange1 = new Texture(Gdx.files.internal("dino1.png"));
             dinoOrange2 = new Texture(Gdx.files.internal("dino2.png"));
-
-            // Obstáculos
+            dinoAgachado1 = new Texture(Gdx.files.internal("dinoAgachado1.png"));
+            dinoAgachado2 = new Texture(Gdx.files.internal("dinoAgachado2.png"));
             cactusTexture = new Texture(Gdx.files.internal("cactus.png"));
             pajaro1Texture = new Texture(Gdx.files.internal("pajaro1.png"));
             pajaro2Texture = new Texture(Gdx.files.internal("pajaro2.png"));
@@ -333,10 +332,16 @@ public class DinosaurioGameScreen implements Screen {
         Dinosaurio dino = game.getDinosaurio();
 
         // Dibujar dinosaurio con sprite animado
-        if (dinoTexture1 != null && dinoTexture2 != null) {
+        if (dinoTexture1 != null && dinoTexture2 != null && dinoAgachado1 != null && dinoAgachado2 != null) {
             batch.setColor(playerColor);
-            // Alternar entre sprite 0 (pata izquierda) y sprite 1 (pata derecha)
-            Texture texturaDino = (dino.getSpriteActual() == 0) ? dinoTexture1 : dinoTexture2;
+
+            Texture texturaDino;
+            if (dino.estaAgachado()) {
+                texturaDino = (dino.getSpriteActual() == 0) ? dinoAgachado1 : dinoAgachado2;
+            } else {
+                texturaDino = (dino.getSpriteActual() == 0) ? dinoTexture1 : dinoTexture2;
+            }
+
             batch.draw(texturaDino, dino.getX(), dino.getY(), dino.getAncho(), dino.getAlto());
             batch.setColor(Color.WHITE);
         } else {
@@ -355,7 +360,6 @@ public class DinosaurioGameScreen implements Screen {
             if (obs.getTipo() == Obstaculo.TIPO_CACTUS && cactusTexture != null) {
                 batch.draw(cactusTexture, obs.getX(), obs.getY(), obs.getAncho(), obs.getAlto());
             } else if (obs.getTipo() == Obstaculo.TIPO_PAJARO) {
-                // Alternar entre alas arriba (sprite 0) y alas abajo (sprite 1)
                 Texture pajaroTexture = (obs.getSpriteActual() == 0) ? pajaro1Texture : pajaro2Texture;
                 if (pajaroTexture != null) {
                     batch.draw(pajaroTexture, obs.getX(), obs.getY(), obs.getAncho(), obs.getAlto());
@@ -431,6 +435,8 @@ public class DinosaurioGameScreen implements Screen {
         if (dinoCyan2 != null) dinoCyan2.dispose();
         if (dinoOrange1 != null) dinoOrange1.dispose();
         if (dinoOrange2 != null) dinoOrange2.dispose();
+        if (dinoAgachado1 != null) dinoAgachado1.dispose();
+        if (dinoAgachado2 != null) dinoAgachado2.dispose();
         if (cactusTexture != null) cactusTexture.dispose();
         if (pajaro1Texture != null) pajaro1Texture.dispose();
         if (pajaro2Texture != null) pajaro2Texture.dispose();

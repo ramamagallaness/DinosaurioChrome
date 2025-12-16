@@ -77,8 +77,8 @@ public class Dinosaurio {
             saltando = false;
         }
 
-        // Actualizar animación de correr (solo cuando está en el suelo y no agachado)
-        if (!saltando && !agachado) {
+        // Actualizar animación de correr (cuando está en el suelo, tanto corriendo como agachado)
+        if (!saltando) {
             tiempoAnimacion += deltaTime;
             if (tiempoAnimacion >= TIEMPO_CAMBIO_SPRITE) {
                 spriteActual = (spriteActual + 1) % 2; // Alterna entre 0 y 1
