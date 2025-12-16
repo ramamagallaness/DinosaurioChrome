@@ -16,15 +16,14 @@ public class DinosaurioGame {
 
     // Configuración de velocidad
     private float velocidadJuego;
-    private static final float VELOCIDAD_INICIAL = 200f;
-    private static final float VELOCIDAD_MAXIMA = 600f;
-    private static final float VELOCIDAD_INCREMENTO = 0.5f;
+    private static final float VELOCIDAD_INICIAL = 260f;
+    private static final float VELOCIDAD_INCREMENTO = 10.0f;
 
     // Spawn de obstáculos
     private float tiempoSpawnObstaculo;
     private float tiempoSpawnActual;
-    private static final float SPAWN_INICIAL = 1.5f;
-    private static final float SPAWN_MINIMO = 0.8f;
+    private static final float SPAWN_INICIAL = 1.8f;
+    private static final float SPAWN_MINIMO = 1.0f;
 
     // Puntuación
     private int puntuacion;
@@ -80,11 +79,8 @@ public class DinosaurioGame {
 
         dinosaurio.agacharse(agachando);
 
-        // Incrementar velocidad gradualmente
+        // Incrementar velocidad infinitamente (sin límite) - MÁS RÁPIDO
         velocidadJuego += VELOCIDAD_INCREMENTO * deltaTime;
-        if (velocidadJuego > VELOCIDAD_MAXIMA) {
-            velocidadJuego = VELOCIDAD_MAXIMA;
-        }
 
         // Actualizar obstáculos
         for (int i = obstaculos.size() - 1; i >= 0; i--) {
@@ -108,22 +104,27 @@ public class DinosaurioGame {
             }
         }
 
+        // Calcular tiempo de spawn dinámico basado en la velocidad
+        // Cuanto más rápido, más tiempo entre obstáculos (más separados)
+        float factorVelocidad = (velocidadJuego - VELOCIDAD_INICIAL) / 500f;
+        float tiempoSpawnDinamico = SPAWN_INICIAL + (factorVelocidad * 0.3f);
+        if (tiempoSpawnDinamico < SPAWN_MINIMO) {
+            tiempoSpawnDinamico = SPAWN_MINIMO;
+        }
+
         // Spawnear obstáculos
         tiempoSpawnActual += deltaTime;
-        if (tiempoSpawnActual >= tiempoSpawnObstaculo) {
+        if (tiempoSpawnActual >= tiempoSpawnDinamico) {
             spawnObstaculo();
             tiempoSpawnActual = 0;
-            // Reducir tiempo de spawn progresivamente
-            if (tiempoSpawnObstaculo > SPAWN_MINIMO) {
-                tiempoSpawnObstaculo -= 0.05f;
-            }
         }
 
         // Incrementar puntuación por tiempo
         puntuacion += (int)(velocidadJuego * deltaTime * 0.1f);
 
-        // Cambiar a modo noche cada 700 puntos
-        modoNoche = (puntuacion / 700) % 2 == 1;
+        // Modo noche: se activa a los 200 puntos y se desactiva a los 400
+        int ciclo = (puntuacion / 200) % 2;
+        modoNoche = (ciclo == 1);
     }
 
     /**

@@ -21,16 +21,23 @@ public class Obstaculo {
     private Rectangle bounds;
 
     // Reducción de hitbox según el tipo
-    private static final float HITBOX_CACTUS_X = 0.20f; // Cactus: reduce 20% en cada lado
-    private static final float HITBOX_CACTUS_Y = 0.10f; // Cactus: reduce 10% arriba/abajo
-    private static final float HITBOX_PAJARO_X = 0.25f; // Pájaro: reduce 25% en cada lado
-    private static final float HITBOX_PAJARO_Y = 0.20f; // Pájaro: reduce 20% arriba/abajo
+    private static final float HITBOX_CACTUS_X = 0.20f;
+    private static final float HITBOX_CACTUS_Y = 0.10f;
+    private static final float HITBOX_PAJARO_X = 0.25f;
+    private static final float HITBOX_PAJARO_Y = 0.20f;
+
+    // Animación de pájaros
+    private float tiempoAnimacion;
+    private static final float TIEMPO_CAMBIO_SPRITE = 0.15f; // Cambiar alas cada 0.15 segundos
+    private int spriteActual; // 0 = alas arriba, 1 = alas abajo
 
     public Obstaculo(float x, float alto, float ancho, int tipo) {
         this.x = x;
         this.ancho = ancho;
         this.alto = alto;
         this.tipo = tipo;
+        this.tiempoAnimacion = 0;
+        this.spriteActual = 0;
 
         // Los pájaros vuelan más alto y a diferentes alturas
         if (tipo == TIPO_PAJARO) {
@@ -53,16 +60,13 @@ public class Obstaculo {
         float reduccionX, reduccionY;
 
         if (tipo == TIPO_CACTUS) {
-            // Hitbox más ajustada para cactus
             reduccionX = ancho * HITBOX_CACTUS_X;
             reduccionY = alto * HITBOX_CACTUS_Y;
         } else {
-            // Hitbox más ajustada para pájaro
             reduccionX = ancho * HITBOX_PAJARO_X;
             reduccionY = alto * HITBOX_PAJARO_Y;
         }
 
-        // Aplicar hitbox reducida centrada en el sprite
         bounds.x = x + reduccionX;
         bounds.y = y + reduccionY;
         bounds.width = ancho - (reduccionX * 2);
@@ -74,6 +78,16 @@ public class Obstaculo {
      */
     public void update(float deltaTime, float velocidad) {
         x -= velocidad * deltaTime;
+
+        // Actualizar animación de pájaros
+        if (tipo == TIPO_PAJARO) {
+            tiempoAnimacion += deltaTime;
+            if (tiempoAnimacion >= TIEMPO_CAMBIO_SPRITE) {
+                spriteActual = (spriteActual + 1) % 2; // Alterna entre 0 y 1
+                tiempoAnimacion = 0;
+            }
+        }
+
         actualizarHitbox();
     }
 
@@ -100,5 +114,9 @@ public class Obstaculo {
 
     public Rectangle getBounds() {
         return bounds;
+    }
+
+    public int getSpriteActual() {
+        return spriteActual;
     }
 }

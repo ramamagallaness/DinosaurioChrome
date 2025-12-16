@@ -26,10 +26,15 @@ public class Dinosaurio {
     private float alturaOriginal;
     private float alturaAgachado;
 
-    // Colisión - Hitbox ajustada al sprite real
+    // Colisión
     private Rectangle bounds;
-    private static final float HITBOX_REDUCCION_X = 0.25f; // Reduce 25% en cada lado (50% total)
-    private static final float HITBOX_REDUCCION_Y = 0.15f; // Reduce 15% arriba/abajo
+    private static final float HITBOX_REDUCCION_X = 0.25f;
+    private static final float HITBOX_REDUCCION_Y = 0.15f;
+
+    // Animación de correr
+    private float tiempoAnimacion;
+    private static final float TIEMPO_CAMBIO_SPRITE = 0.1f; // Cambiar sprite cada 0.1 segundos
+    private int spriteActual; // 0 = pata izquierda, 1 = pata derecha
 
     public Dinosaurio(float ancho, float alto) {
         this.ancho = ancho;
@@ -43,18 +48,15 @@ public class Dinosaurio {
         this.saltando = false;
         this.agachado = false;
         this.bounds = new Rectangle();
+        this.tiempoAnimacion = 0;
+        this.spriteActual = 0;
         actualizarHitbox();
     }
 
-    /**
-     * Actualiza la hitbox para que se ajuste al sprite visible
-     */
     private void actualizarHitbox() {
-        // Calcular reducción en píxeles
         float reduccionX = ancho * HITBOX_REDUCCION_X;
         float reduccionY = alto * HITBOX_REDUCCION_Y;
 
-        // Aplicar hitbox reducida centrada en el sprite
         bounds.x = x + reduccionX;
         bounds.y = y + reduccionY;
         bounds.width = ancho - (reduccionX * 2);
@@ -75,7 +77,15 @@ public class Dinosaurio {
             saltando = false;
         }
 
-        // Actualizar hitbox
+        // Actualizar animación de correr (solo cuando está en el suelo y no agachado)
+        if (!saltando && !agachado) {
+            tiempoAnimacion += deltaTime;
+            if (tiempoAnimacion >= TIEMPO_CAMBIO_SPRITE) {
+                spriteActual = (spriteActual + 1) % 2; // Alterna entre 0 y 1
+                tiempoAnimacion = 0;
+            }
+        }
+
         actualizarHitbox();
     }
 
@@ -108,6 +118,8 @@ public class Dinosaurio {
         saltando = false;
         agachado = false;
         alto = alturaOriginal;
+        tiempoAnimacion = 0;
+        spriteActual = 0;
         actualizarHitbox();
     }
 
@@ -119,4 +131,5 @@ public class Dinosaurio {
     public boolean estaSaltando() { return saltando; }
     public boolean estaAgachado() { return agachado; }
     public Rectangle getBounds() { return bounds; }
+    public int getSpriteActual() { return spriteActual; }
 }
