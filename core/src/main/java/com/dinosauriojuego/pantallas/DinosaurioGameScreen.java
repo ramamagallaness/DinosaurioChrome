@@ -57,8 +57,9 @@ public class DinosaurioGameScreen implements Screen {
     // Textura del botón reiniciar
     private Texture botonReiniciarTexture;
 
-    // Sonido de salto
+    // Sonidos
     private Sound sonidoSalto;
+    private Sound sonidoMuerte;
 
     // UI
     private Stage stageJugador1;
@@ -86,6 +87,9 @@ public class DinosaurioGameScreen implements Screen {
     private boolean saltoJ2Pendiente;
     private boolean agachadoJ2Pendiente;
     private boolean juegoTerminado;
+
+    // Variables para controlar si ya se reprodujo el sonido de muerte
+    private boolean sonidoMuerteReproducido;
 
     public DinosaurioGameScreen(Skin skin) {
         this.skin = skin;
@@ -116,6 +120,7 @@ public class DinosaurioGameScreen implements Screen {
 
         this.tiempoInstrucciones = 0;
         this.juegoTerminado = false;
+        this.sonidoMuerteReproducido = false;
 
         this.fondoOffsetJ1 = 0;
         this.fondoOffsetJ2 = 0;
@@ -140,8 +145,9 @@ public class DinosaurioGameScreen implements Screen {
             fondoTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
             botonReiniciarTexture = new Texture(Gdx.files.internal("reiniciar.png"));
 
-            // Cargar sonido de salto
+            // Cargar sonidos
             sonidoSalto = Gdx.audio.newSound(Gdx.files.internal("sonidoSalto.ogg"));
+            sonidoMuerte = Gdx.audio.newSound(Gdx.files.internal("sonidoMuerte.ogg"));
         } catch (Exception e) {
             System.out.println("No se pudieron cargar algunas texturas o sonidos, se usarán colores sólidos");
         }
@@ -224,6 +230,11 @@ public class DinosaurioGameScreen implements Screen {
 
             if (gameJugador1.isGameOver() || gameJugador2.isGameOver()) {
                 juegoTerminado = true;
+                // Reproducir sonido de muerte cuando alguien pierde
+                if (!sonidoMuerteReproducido && sonidoMuerte != null) {
+                    sonidoMuerte.play(1.0f);
+                    sonidoMuerteReproducido = true;
+                }
             }
         }
 
@@ -319,6 +330,7 @@ public class DinosaurioGameScreen implements Screen {
         gameJugador2.reset();
         ganadorLabel.setVisible(false);
         juegoTerminado = false;
+        sonidoMuerteReproducido = false;
         fondoOffsetJ1 = 0;
         fondoOffsetJ2 = 0;
 
@@ -518,5 +530,6 @@ public class DinosaurioGameScreen implements Screen {
         if (fondoTexture != null) fondoTexture.dispose();
         if (botonReiniciarTexture != null) botonReiniciarTexture.dispose();
         if (sonidoSalto != null) sonidoSalto.dispose();
+        if (sonidoMuerte != null) sonidoMuerte.dispose();
     }
 }
