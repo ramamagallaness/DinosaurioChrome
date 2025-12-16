@@ -48,6 +48,14 @@ public class DinosaurioGameScreen implements Screen {
     private Texture pajaro1Texture;
     private Texture pajaro2Texture;
 
+    // Textura de fondo
+    private Texture fondoTexture;
+    private float fondoOffsetJ1;
+    private float fondoOffsetJ2;
+
+    // Textura del botón reiniciar
+    private Texture botonReiniciarTexture;
+
     // UI
     private Stage stageJugador1;
     private Stage stageJugador2;
@@ -58,9 +66,16 @@ public class DinosaurioGameScreen implements Screen {
     private Label jugador1Label;
     private Label puntuacionJ2Label;
     private Label jugador2Label;
-    private Label instruccionesLabel;
+    private Label instruccionesJ1Label;
+    private Label instruccionesJ2Label;
     private Label ganadorLabel;
     private Label reiniciarLabel;
+
+    // Rectángulo del botón reiniciar para detectar clics
+    private float botonReiniciarX;
+    private float botonReiniciarY;
+    private float botonReiniciarAncho;
+    private float botonReiniciarAlto;
 
     private float tiempoInstrucciones;
     private static final float TIEMPO_MOSTRAR_INSTRUCCIONES = 3.0f;
@@ -101,6 +116,9 @@ public class DinosaurioGameScreen implements Screen {
         this.tiempoInstrucciones = 0;
         this.juegoTerminado = false;
 
+        this.fondoOffsetJ1 = 0;
+        this.fondoOffsetJ2 = 0;
+
         cargarTexturas();
         setupUI();
         Gdx.input.setInputProcessor(stageGlobal);
@@ -117,6 +135,9 @@ public class DinosaurioGameScreen implements Screen {
             cactusTexture = new Texture(Gdx.files.internal("cactus.png"));
             pajaro1Texture = new Texture(Gdx.files.internal("pajaro1.png"));
             pajaro2Texture = new Texture(Gdx.files.internal("pajaro2.png"));
+            fondoTexture = new Texture(Gdx.files.internal("fondo.png"));
+            fondoTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+            botonReiniciarTexture = new Texture(Gdx.files.internal("reiniciar.png"));
         } catch (Exception e) {
             System.out.println("No se pudieron cargar algunas texturas, se usarán colores sólidos");
         }
@@ -135,6 +156,15 @@ public class DinosaurioGameScreen implements Screen {
         puntuacionJ1Label.setPosition(350, 20);
         stageJugador1.addActor(puntuacionJ1Label);
 
+        // Instrucciones centradas para Jugador 1
+        instruccionesJ1Label = new Label("W/ESPACIO saltar | S agacharse", skin, "default");
+        instruccionesJ1Label.setFontScale(2.0f);
+        instruccionesJ1Label.setColor(Color.BLACK);
+        float anchoJ1 = instruccionesJ1Label.getWidth() * 2.0f;
+        instruccionesJ1Label.setPosition((GAME_WIDTH - anchoJ1) / 2, 180);
+        instruccionesJ1Label.setVisible(true);
+        stageJugador1.addActor(instruccionesJ1Label);
+
         jugador2Label = new Label("JUGADOR 2", skin, "default");
         jugador2Label.setFontScale(2.5f);
         jugador2Label.setColor(Color.BLACK);
@@ -147,24 +177,32 @@ public class DinosaurioGameScreen implements Screen {
         puntuacionJ2Label.setPosition(350, 20);
         stageJugador2.addActor(puntuacionJ2Label);
 
-        instruccionesLabel = new Label("JUGADOR 1: W/ESPACIO saltar | S agacharse\nJUGADOR 2: FLECHA ARRIBA saltar | FLECHA ABAJO agacharse", skin, "default");
-        instruccionesLabel.setFontScale(2.0f);
-        instruccionesLabel.setColor(Color.BLACK);
-        instruccionesLabel.setPosition(80, 380);
-        instruccionesLabel.setVisible(true);
-        stageGlobal.addActor(instruccionesLabel);
+        // Instrucciones centradas para Jugador 2
+        instruccionesJ2Label = new Label("FLECHA ARRIBA saltar | FLECHA ABAJO agacharse", skin, "default");
+        instruccionesJ2Label.setFontScale(2.0f);
+        instruccionesJ2Label.setColor(Color.BLACK);
+        float anchoJ2 = instruccionesJ2Label.getWidth() * 2.0f;
+        instruccionesJ2Label.setPosition((GAME_WIDTH - anchoJ2) / 2, 180);
+        instruccionesJ2Label.setVisible(true);
+        stageJugador2.addActor(instruccionesJ2Label);
 
         ganadorLabel = new Label("", skin, "default");
         ganadorLabel.setFontScale(5.0f);
-        ganadorLabel.setColor(Color.WHITE);
+        ganadorLabel.setColor(Color.BLACK);
         ganadorLabel.setVisible(false);
         stageGlobal.addActor(ganadorLabel);
 
         reiniciarLabel = new Label("Presiona ESPACIO para jugar de nuevo", skin, "default");
         reiniciarLabel.setFontScale(2.8f);
-        reiniciarLabel.setColor(Color.WHITE);
+        reiniciarLabel.setColor(Color.BLACK);
         reiniciarLabel.setVisible(false);
         stageGlobal.addActor(reiniciarLabel);
+
+        // Tamaño y posición del botón reiniciar
+        botonReiniciarAncho = 200;
+        botonReiniciarAlto = 200;
+        botonReiniciarX = (GAME_WIDTH - botonReiniciarAncho) / 2;
+        botonReiniciarY = 250;
     }
 
     @Override
@@ -181,17 +219,27 @@ public class DinosaurioGameScreen implements Screen {
             if (tiempoInstrucciones >= TIEMPO_MOSTRAR_INSTRUCCIONES - 0.5f) {
                 float fadeTime = TIEMPO_MOSTRAR_INSTRUCCIONES - tiempoInstrucciones;
                 float alpha = fadeTime / 0.5f;
-                Color color = instruccionesLabel.getColor();
-                color.a = alpha;
-                instruccionesLabel.setColor(color);
+
+                Color colorJ1 = instruccionesJ1Label.getColor();
+                colorJ1.a = alpha;
+                instruccionesJ1Label.setColor(colorJ1);
+
+                Color colorJ2 = instruccionesJ2Label.getColor();
+                colorJ2.a = alpha;
+                instruccionesJ2Label.setColor(colorJ2);
             }
         } else if (!juegoTerminado) {
-            instruccionesLabel.setVisible(false);
+            instruccionesJ1Label.setVisible(false);
+            instruccionesJ2Label.setVisible(false);
         }
 
         if (!juegoTerminado) {
             gameJugador1.update(delta, saltoJ1Pendiente, agachadoJ1Pendiente);
             gameJugador2.update(delta, saltoJ2Pendiente, agachadoJ2Pendiente);
+
+            // Actualizar offset del fondo basado en la velocidad del juego
+            fondoOffsetJ1 += gameJugador1.getVelocidadJuego() * delta;
+            fondoOffsetJ2 += gameJugador2.getVelocidadJuego() * delta;
 
             if (gameJugador1.isGameOver() || gameJugador2.isGameOver()) {
                 juegoTerminado = true;
@@ -204,8 +252,8 @@ public class DinosaurioGameScreen implements Screen {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.1f, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        renderGame(gameJugador1, viewportJugador1, cameraJugador1, stageJugador1, 0, 360, Color.CYAN, dinoCyan1, dinoCyan2);
-        renderGame(gameJugador2, viewportJugador2, cameraJugador2, stageJugador2, 0, 0, Color.ORANGE, dinoOrange1, dinoOrange2);
+        renderGame(gameJugador1, viewportJugador1, cameraJugador1, stageJugador1, 0, 360, Color.CYAN, dinoCyan1, dinoCyan2, fondoOffsetJ1);
+        renderGame(gameJugador2, viewportJugador2, cameraJugador2, stageJugador2, 0, 0, Color.ORANGE, dinoOrange1, dinoOrange2, fondoOffsetJ2);
 
         puntuacionJ1Label.setText("Puntos: " + gameJugador1.getPuntuacion());
         puntuacionJ1Label.setColor(Color.BLACK);
@@ -213,7 +261,7 @@ public class DinosaurioGameScreen implements Screen {
         puntuacionJ2Label.setText("Puntos: " + gameJugador2.getPuntuacion());
         puntuacionJ2Label.setColor(Color.BLACK);
 
-        if (!juegoTerminado) {
+        if (!juegoTerminado && tiempoInstrucciones < TIEMPO_MOSTRAR_INSTRUCCIONES) {
             stageGlobal.act(delta);
             stageGlobal.draw();
         }
@@ -233,13 +281,6 @@ public class DinosaurioGameScreen implements Screen {
     private void mostrarPantallaGanador() {
         Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-        shapeRenderer.setProjectionMatrix(stageGlobal.getCamera().combined);
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0, 0, 0, 0.9f);
-        shapeRenderer.rect(0, 0, GAME_WIDTH, 720);
-        shapeRenderer.end();
-
         String textoGanador;
         if (gameJugador1.isGameOver() && gameJugador2.isGameOver()) {
             if (gameJugador1.getPuntuacion() > gameJugador2.getPuntuacion()) {
@@ -256,41 +297,72 @@ public class DinosaurioGameScreen implements Screen {
         }
 
         ganadorLabel.setText(textoGanador);
-        ganadorLabel.setColor(Color.WHITE);
+        ganadorLabel.setColor(Color.BLACK);
         ganadorLabel.setVisible(true);
         ganadorLabel.setPosition(
             (GAME_WIDTH - ganadorLabel.getWidth() * 5.0f) / 2,
-            450
-        );
-
-        reiniciarLabel.setColor(Color.WHITE);
-        reiniciarLabel.setVisible(true);
-        reiniciarLabel.setPosition(
-            (GAME_WIDTH - reiniciarLabel.getWidth() * 2.8f) / 2,
-            320
+            500
         );
 
         stageGlobal.getViewport().apply();
         stageGlobal.draw();
 
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            gameJugador1.reset();
-            gameJugador2.reset();
-            ganadorLabel.setVisible(false);
-            reiniciarLabel.setVisible(false);
-            juegoTerminado = false;
-
-            tiempoInstrucciones = 0;
-            instruccionesLabel.setVisible(true);
-            Color colorInstrucciones = new Color(Color.BLACK);
-            colorInstrucciones.a = 1.0f;
-            instruccionesLabel.setColor(colorInstrucciones);
+        // Dibujar botón de reiniciar
+        batch.setProjectionMatrix(stageGlobal.getCamera().combined);
+        batch.begin();
+        if (botonReiniciarTexture != null) {
+            batch.draw(botonReiniciarTexture, botonReiniciarX, botonReiniciarY, botonReiniciarAncho, botonReiniciarAlto);
         }
+        batch.end();
+
+        // Detectar clic en el botón reiniciar
+        if (Gdx.input.justTouched()) {
+            float mouseX = Gdx.input.getX();
+            float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+
+            // Convertir coordenadas de pantalla a coordenadas del juego
+            float factorX = GAME_WIDTH / (float) Gdx.graphics.getWidth();
+            float factorY = 720 / (float) Gdx.graphics.getHeight();
+            mouseX *= factorX;
+            mouseY *= factorY;
+
+            if (mouseX >= botonReiniciarX && mouseX <= botonReiniciarX + botonReiniciarAncho &&
+                mouseY >= botonReiniciarY && mouseY <= botonReiniciarY + botonReiniciarAlto) {
+                reiniciarJuego();
+            }
+        }
+
+        // También permitir reiniciar con ESPACIO
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            reiniciarJuego();
+        }
+    }
+
+    private void reiniciarJuego() {
+        gameJugador1.reset();
+        gameJugador2.reset();
+        ganadorLabel.setVisible(false);
+        reiniciarLabel.setVisible(false);
+        juegoTerminado = false;
+        fondoOffsetJ1 = 0;
+        fondoOffsetJ2 = 0;
+
+        tiempoInstrucciones = 0;
+        instruccionesJ1Label.setVisible(true);
+        instruccionesJ2Label.setVisible(true);
+
+        Color colorInstruccionesJ1 = new Color(Color.BLACK);
+        colorInstruccionesJ1.a = 1.0f;
+        instruccionesJ1Label.setColor(colorInstruccionesJ1);
+
+        Color colorInstruccionesJ2 = new Color(Color.BLACK);
+        colorInstruccionesJ2.a = 1.0f;
+        instruccionesJ2Label.setColor(colorInstruccionesJ2);
     }
 
     private void renderGame(DinosaurioGame game, Viewport viewport, OrthographicCamera camera,
                             Stage stage, int offsetX, int offsetY, Color playerColor,
-                            Texture dinoTexture1, Texture dinoTexture2) {
+                            Texture dinoTexture1, Texture dinoTexture2, float fondoOffset) {
         Color colorFondo;
         Color colorSuelo;
         Color colorTexto;
@@ -315,19 +387,35 @@ public class DinosaurioGameScreen implements Screen {
         Gdx.gl.glDisable(GL20.GL_SCISSOR_TEST);
 
         camera.update();
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        shapeRenderer.setColor(colorSuelo);
-        shapeRenderer.rect(0, 0, GAME_WIDTH, 60);
-
-        shapeRenderer.setColor(colorTexto);
-        shapeRenderer.rectLine(0, 60, GAME_WIDTH, 60, 2);
-
-        shapeRenderer.end();
-
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
+
+        // Dibujar fondo repetido scrolleando
+        if (fondoTexture != null) {
+            float fondoAncho = fondoTexture.getWidth();
+            float fondoAlto = 60; // Altura del suelo
+
+            // Calcular cuántas veces repetir el fondo
+            int repeticiones = (int) Math.ceil(GAME_WIDTH / fondoAncho) + 2;
+
+            // Calcular offset normalizado
+            float offsetNormalizado = fondoOffset % fondoAncho;
+
+            // Dibujar el fondo repetido
+            for (int i = -1; i < repeticiones; i++) {
+                float x = i * fondoAncho - offsetNormalizado;
+                batch.draw(fondoTexture, x, 22, fondoAncho, fondoAlto);
+            }
+        } else {
+            // Si no hay textura de fondo, dibujar el rectángulo de color
+            batch.end();
+            shapeRenderer.setProjectionMatrix(camera.combined);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+            shapeRenderer.setColor(colorSuelo);
+            shapeRenderer.rect(0, 0, GAME_WIDTH, 60);
+            shapeRenderer.end();
+            batch.begin();
+        }
 
         Dinosaurio dino = game.getDinosaurio();
 
@@ -440,5 +528,7 @@ public class DinosaurioGameScreen implements Screen {
         if (cactusTexture != null) cactusTexture.dispose();
         if (pajaro1Texture != null) pajaro1Texture.dispose();
         if (pajaro2Texture != null) pajaro2Texture.dispose();
+        if (fondoTexture != null) fondoTexture.dispose();
+        if (botonReiniciarTexture != null) botonReiniciarTexture.dispose();
     }
 }
