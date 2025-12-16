@@ -20,11 +20,9 @@ public class Obstaculo {
     // Colisión - Hitbox ajustada
     private Rectangle bounds;
 
-    // Reducción de hitbox según el tipo
-    private static final float HITBOX_CACTUS_X = 0.20f;
-    private static final float HITBOX_CACTUS_Y = 0.10f;
-    private static final float HITBOX_PAJARO_X = 0.25f;
-    private static final float HITBOX_PAJARO_Y = 0.20f;
+    // Reducción de hitbox para hacerla un poco más chica
+    private static final float HITBOX_REDUCCION_X = 0.15f;
+    private static final float HITBOX_REDUCCION_Y = 0.10f;
 
     // Animación de pájaros
     private float tiempoAnimacion;
@@ -54,18 +52,11 @@ public class Obstaculo {
     }
 
     /**
-     * Actualiza la hitbox según el tipo de obstáculo
+     * Actualiza la hitbox un poco más chica que el sprite
      */
     private void actualizarHitbox() {
-        float reduccionX, reduccionY;
-
-        if (tipo == TIPO_CACTUS) {
-            reduccionX = ancho * HITBOX_CACTUS_X;
-            reduccionY = alto * HITBOX_CACTUS_Y;
-        } else {
-            reduccionX = ancho * HITBOX_PAJARO_X;
-            reduccionY = alto * HITBOX_PAJARO_Y;
-        }
+        float reduccionX = ancho * HITBOX_REDUCCION_X;
+        float reduccionY = alto * HITBOX_REDUCCION_Y;
 
         bounds.x = x + reduccionX;
         bounds.y = y + reduccionY;

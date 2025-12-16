@@ -1,7 +1,5 @@
 package com.dinosauriojuego.logica;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.math.MathUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,26 +23,19 @@ public class DinosaurioGame {
     private static final float SPAWN_INICIAL = 1.8f;
     private static final float SPAWN_MINIMO = 1.0f;
 
-    // Puntuación
-    private int puntuacion;
-    private int highScore;
-    private Preferences prefs;
-    private String playerKey;
-
     // Estado del juego
     private boolean gameOver;
     private boolean modoNoche;
+
+    // Control de día/noche (20 segundos cada ciclo)
+    private float tiempoCiclo;
+    private static final float DURACION_CICLO = 20f;
 
     // Dimensiones de pantalla
     private float alturaPantalla;
     private float anchoPantalla;
 
-    // Identificador único para cada instancia
-    private static int instanceCounter = 0;
-    private int instanceId;
-
     public DinosaurioGame(float anchoPantalla, float alturaPantalla) {
-        this.instanceId = instanceCounter++;
         this.anchoPantalla = anchoPantalla;
         this.alturaPantalla = alturaPantalla;
         this.dinosaurio = new Dinosaurio(50, 60);
@@ -52,14 +43,9 @@ public class DinosaurioGame {
         this.velocidadJuego = VELOCIDAD_INICIAL;
         this.tiempoSpawnObstaculo = SPAWN_INICIAL;
         this.tiempoSpawnActual = 0f;
-        this.puntuacion = 0;
         this.gameOver = false;
         this.modoNoche = false;
-
-        // Cargar high score específico para cada jugador
-        prefs = Gdx.app.getPreferences("DinosaurioChrome");
-        playerKey = "highScore_player" + instanceId;
-        highScore = prefs.getInteger(playerKey, 0);
+        this.tiempoCiclo = 0f;
     }
 
     /**
@@ -90,11 +76,6 @@ public class DinosaurioGame {
             // Detectar colisión
             if (dinosaurio.colisiona(obs)) {
                 gameOver = true;
-                if (puntuacion > highScore) {
-                    highScore = puntuacion;
-                    prefs.putInteger(playerKey, highScore);
-                    prefs.flush();
-                }
             }
 
             // Eliminar obstáculos fuera de pantalla
@@ -117,12 +98,12 @@ public class DinosaurioGame {
             tiempoSpawnActual = 0;
         }
 
-        // Incrementar puntuación CONTINUAMENTE por tiempo
-        puntuacion += (int)(100 * deltaTime);
-
-        // Modo noche: se activa a los 200 puntos y se desactiva a los 400
-        int ciclo = (puntuacion / 200) % 2;
-        modoNoche = (ciclo == 1);
+        // Modo noche: se activa después de 20 segundos, luego alterna cada 20 segundos
+        tiempoCiclo += deltaTime;
+        if (tiempoCiclo >= DURACION_CICLO) {
+            tiempoCiclo -= DURACION_CICLO;
+            modoNoche = !modoNoche;
+        }
     }
 
     /**
@@ -149,9 +130,9 @@ public class DinosaurioGame {
         velocidadJuego = VELOCIDAD_INICIAL;
         tiempoSpawnObstaculo = SPAWN_INICIAL;
         tiempoSpawnActual = 0f;
-        puntuacion = 0;
         gameOver = false;
         modoNoche = false;
+        tiempoCiclo = 0f;
     }
 
     // Getters
@@ -161,14 +142,6 @@ public class DinosaurioGame {
 
     public List<Obstaculo> getObstaculos() {
         return obstaculos;
-    }
-
-    public int getPuntuacion() {
-        return puntuacion;
-    }
-
-    public int getHighScore() {
-        return highScore;
     }
 
     public boolean isGameOver() {

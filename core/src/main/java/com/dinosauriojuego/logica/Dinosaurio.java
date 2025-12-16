@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 /**
  * Clase que representa al dinosaurio jugador
+ * Dimensiones reales del PNG: 81x93
  */
 public class Dinosaurio {
     // Posición y dimensiones
@@ -26,10 +27,10 @@ public class Dinosaurio {
     private float alturaOriginal;
     private float alturaAgachado;
 
-    // Colisión
+    // Colisión - Hitbox ajustada
     private Rectangle bounds;
-    private static final float HITBOX_REDUCCION_X = 0.25f;
-    private static final float HITBOX_REDUCCION_Y = 0.15f;
+    private static final float HITBOX_REDUCCION_X = 0.15f;
+    private static final float HITBOX_REDUCCION_Y = 0.10f;
 
     // Animación de correr
     private float tiempoAnimacion;
@@ -54,13 +55,11 @@ public class Dinosaurio {
     }
 
     private void actualizarHitbox() {
-        float reduccionX = ancho * HITBOX_REDUCCION_X;
-        float reduccionY = alto * HITBOX_REDUCCION_Y;
-
-        bounds.x = x + reduccionX;
-        bounds.y = y + reduccionY;
-        bounds.width = ancho - (reduccionX * 2);
-        bounds.height = alto - (reduccionY * 2);
+        // Hitbox exacta sin reducciones
+        bounds.x = x;
+        bounds.y = y;
+        bounds.width = ancho;
+        bounds.height = alto;
     }
 
     public void update(float deltaTime, float alturaPantalla) {
