@@ -66,6 +66,7 @@ public class DinosaurioGameScreen implements Screen {
     private Label jugador1Label;
     private Label puntuacionJ2Label;
     private Label jugador2Label;
+    private Label puntuacionCompartidaLabel;
     private Label instruccionesJ1Label;
     private Label instruccionesJ2Label;
     private Label ganadorLabel;
@@ -150,12 +151,6 @@ public class DinosaurioGameScreen implements Screen {
         jugador1Label.setPosition(20, 20);
         stageJugador1.addActor(jugador1Label);
 
-        puntuacionJ1Label = new Label("Puntos: 0", skin, "default");
-        puntuacionJ1Label.setFontScale(2.5f);
-        puntuacionJ1Label.setColor(Color.BLACK);
-        puntuacionJ1Label.setPosition(350, 20);
-        stageJugador1.addActor(puntuacionJ1Label);
-
         // Instrucciones centradas para Jugador 1
         instruccionesJ1Label = new Label("W/ESPACIO saltar | S agacharse", skin, "default");
         instruccionesJ1Label.setFontScale(2.0f);
@@ -171,12 +166,6 @@ public class DinosaurioGameScreen implements Screen {
         jugador2Label.setPosition(20, 20);
         stageJugador2.addActor(jugador2Label);
 
-        puntuacionJ2Label = new Label("Puntos: 0", skin, "default");
-        puntuacionJ2Label.setFontScale(2.5f);
-        puntuacionJ2Label.setColor(Color.BLACK);
-        puntuacionJ2Label.setPosition(350, 20);
-        stageJugador2.addActor(puntuacionJ2Label);
-
         // Instrucciones centradas para Jugador 2
         instruccionesJ2Label = new Label("FLECHA ARRIBA saltar | FLECHA ABAJO agacharse", skin, "default");
         instruccionesJ2Label.setFontScale(2.0f);
@@ -185,6 +174,12 @@ public class DinosaurioGameScreen implements Screen {
         instruccionesJ2Label.setPosition((GAME_WIDTH - anchoJ2) / 2, 180);
         instruccionesJ2Label.setVisible(true);
         stageJugador2.addActor(instruccionesJ2Label);
+
+        // Puntuación compartida en el medio
+        puntuacionCompartidaLabel = new Label("0", skin, "default");
+        puntuacionCompartidaLabel.setFontScale(4.0f);
+        puntuacionCompartidaLabel.setColor(Color.WHITE);
+        stageGlobal.addActor(puntuacionCompartidaLabel);
 
         ganadorLabel = new Label("", skin, "default");
         ganadorLabel.setFontScale(5.0f);
@@ -198,11 +193,11 @@ public class DinosaurioGameScreen implements Screen {
         reiniciarLabel.setVisible(false);
         stageGlobal.addActor(reiniciarLabel);
 
-        // Tamaño y posición del botón reiniciar
-        botonReiniciarAncho = 200;
-        botonReiniciarAlto = 200;
+        // Tamaño y posición del botón reiniciar (más chico)
+        botonReiniciarAncho = 120;
+        botonReiniciarAlto = 120;
         botonReiniciarX = (GAME_WIDTH - botonReiniciarAncho) / 2;
-        botonReiniciarY = 250;
+        botonReiniciarY = 280;
     }
 
     @Override
@@ -255,13 +250,17 @@ public class DinosaurioGameScreen implements Screen {
         renderGame(gameJugador1, viewportJugador1, cameraJugador1, stageJugador1, 0, 360, Color.CYAN, dinoCyan1, dinoCyan2, fondoOffsetJ1);
         renderGame(gameJugador2, viewportJugador2, cameraJugador2, stageJugador2, 0, 0, Color.ORANGE, dinoOrange1, dinoOrange2, fondoOffsetJ2);
 
-        puntuacionJ1Label.setText("Puntos: " + gameJugador1.getPuntuacion());
-        puntuacionJ1Label.setColor(Color.BLACK);
-
-        puntuacionJ2Label.setText("Puntos: " + gameJugador2.getPuntuacion());
-        puntuacionJ2Label.setColor(Color.BLACK);
+        // Actualizar y mostrar puntuación compartida en el medio
+        int puntuacionTotal = gameJugador1.getPuntuacion();
+        puntuacionCompartidaLabel.setText(String.valueOf(puntuacionTotal));
+        puntuacionCompartidaLabel.pack();
+        float anchoPuntuacion = puntuacionCompartidaLabel.getWidth();
+        puntuacionCompartidaLabel.setPosition((GAME_WIDTH - anchoPuntuacion) / 2, 352);
 
         if (!juegoTerminado && tiempoInstrucciones < TIEMPO_MOSTRAR_INSTRUCCIONES) {
+            stageGlobal.act(delta);
+            stageGlobal.draw();
+        } else if (!juegoTerminado) {
             stageGlobal.act(delta);
             stageGlobal.draw();
         }
@@ -299,15 +298,16 @@ public class DinosaurioGameScreen implements Screen {
         ganadorLabel.setText(textoGanador);
         ganadorLabel.setColor(Color.BLACK);
         ganadorLabel.setVisible(true);
-        ganadorLabel.setPosition(
-            (GAME_WIDTH - ganadorLabel.getWidth() * 5.0f) / 2,
-            500
-        );
+
+        // Centrar correctamente el texto del ganador
+        ganadorLabel.pack(); // Esto actualiza el tamaño real del label
+        float anchoTexto = ganadorLabel.getWidth();
+        ganadorLabel.setPosition((GAME_WIDTH - anchoTexto) / 2, 480);
 
         stageGlobal.getViewport().apply();
         stageGlobal.draw();
 
-        // Dibujar botón de reiniciar
+        // Dibujar botón de reiniciar (más chico)
         batch.setProjectionMatrix(stageGlobal.getCamera().combined);
         batch.begin();
         if (botonReiniciarTexture != null) {

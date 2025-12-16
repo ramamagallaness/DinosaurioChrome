@@ -29,7 +29,7 @@ public class DinosaurioGame {
     private int puntuacion;
     private int highScore;
     private Preferences prefs;
-    private String playerKey; // Clave única para cada jugador
+    private String playerKey;
 
     // Estado del juego
     private boolean gameOver;
@@ -79,7 +79,7 @@ public class DinosaurioGame {
 
         dinosaurio.agacharse(agachando);
 
-        // Incrementar velocidad infinitamente (sin límite) - MÁS RÁPIDO
+        // Incrementar velocidad infinitamente
         velocidadJuego += VELOCIDAD_INCREMENTO * deltaTime;
 
         // Actualizar obstáculos
@@ -100,12 +100,10 @@ public class DinosaurioGame {
             // Eliminar obstáculos fuera de pantalla
             if (obs.getX() + obs.getAncho() < 0) {
                 obstaculos.remove(i);
-                puntuacion += 10;
             }
         }
 
         // Calcular tiempo de spawn dinámico basado en la velocidad
-        // Cuanto más rápido, más tiempo entre obstáculos (más separados)
         float factorVelocidad = (velocidadJuego - VELOCIDAD_INICIAL) / 500f;
         float tiempoSpawnDinamico = SPAWN_INICIAL + (factorVelocidad * 0.3f);
         if (tiempoSpawnDinamico < SPAWN_MINIMO) {
@@ -119,8 +117,8 @@ public class DinosaurioGame {
             tiempoSpawnActual = 0;
         }
 
-        // Incrementar puntuación por tiempo
-        puntuacion += (int)(velocidadJuego * deltaTime * 0.1f);
+        // Incrementar puntuación CONTINUAMENTE por tiempo
+        puntuacion += (int)(100 * deltaTime);
 
         // Modo noche: se activa a los 200 puntos y se desactiva a los 400
         int ciclo = (puntuacion / 200) % 2;
